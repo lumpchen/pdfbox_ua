@@ -46,13 +46,13 @@ public class PageViewPane implements ActionListener, AncestorListener {
     private float zoom = 1;
     private int rotation = 0;
     
+    private PDFRenderer renderer;
+    private List<MarkedContentNode> selectedStructureList;
+    
     class TooltipArea {
     	Area shape;
     	String tooltip;
     }
-    
-    private PDFRenderer renderer;
-    private List<MarkedContentNode> selectedStructureList;
     
     public PageViewPane(PDDocument document) {
     	this.document = document;
