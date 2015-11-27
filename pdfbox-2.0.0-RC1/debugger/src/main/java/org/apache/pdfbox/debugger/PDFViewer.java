@@ -739,10 +739,9 @@ public class PDFViewer extends JFrame {
 	 * This will print out a message telling how to use this utility.
 	 */
 	private static void usage() {
-		String message = "Usage: java -jar pdfbox-app-x.y.z.jar PDFViewer [options] <inputfile>\n"
+		String message = "Usage: java -jar pdfbox-app-x.y.z.jar PDFViewer\n"
 				+ "\nOptions:\n"
 				+ "  -password <password> : Password to decrypt the document\n"
-				+ "  -viewstructure       : activate structure mode on startup\n"
 				+ "  <inputfile>          : The PDF document to be loaded\n";
 
 		System.err.println(message);

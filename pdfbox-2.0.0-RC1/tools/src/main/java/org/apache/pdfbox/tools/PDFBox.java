@@ -135,6 +135,7 @@ public final class PDFBox
                 + "  OverlayPDF\n"
                 + "  PrintPDF\n"
                 + "  PDFDebugger\n"
+                + "  PDFViewer\n"
                 + "  PDFMerger\n"
                 + "  PDFReader\n"
                 + "  PDFSplit\n"
