@@ -17,6 +17,7 @@
 package org.apache.pdfbox.tools;
 
 import org.apache.pdfbox.debugger.PDFDebugger;
+import org.apache.pdfbox.debugger.PDFViewer;
 
 /**
  * Simple wrapper around all the command line utilities included in PDFBox.
@@ -75,6 +76,11 @@ public final class PDFBox
             {
                 PDFDebugger.main(arguments);
                 exitAfterCallingMain = false;
+            }
+            else if (command.equals("PDFViewer")) 
+            {
+            	PDFViewer.main(arguments);
+            	exitAfterCallingMain = false;
             }
             else if (command.equals("PDFMerger"))
             {

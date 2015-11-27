@@ -18,15 +18,18 @@ package org.apache.pdfbox.contentstream.operator.graphics;
 
 import java.io.IOException;
 import java.util.List;
-import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 
+import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.MissingResourceException;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDTransparencyGroup;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
+import org.apache.pdfbox.rendering.StructuredPDFStreamEngine;
+import org.apache.pdfbox.text.PDFMarkedContentExtractor;
 import org.apache.pdfbox.contentstream.operator.Operator;
 
 /**
@@ -51,7 +54,7 @@ public final class DrawObject extends GraphicsOperatorProcessor
         }
         COSName objectName = (COSName) base0;
         PDXObject xobject = context.getResources().getXObject(objectName);
-
+        
         if (xobject == null)
         {
             throw new MissingResourceException("Missing XObject: " + objectName.getName());
@@ -67,7 +70,16 @@ public final class DrawObject extends GraphicsOperatorProcessor
         }
         else if (xobject instanceof PDFormXObject)
         {
+            if (this.context instanceof StructuredPDFStreamEngine) {
+            	COSObject indirect = context.getResources().getIndirect(COSName.XOBJECT, objectName);
+            	((StructuredPDFStreamEngine) context).beginXObject(indirect);
+            }
+            
             getContext().showForm((PDFormXObject) xobject);
+            
+            if (this.context instanceof StructuredPDFStreamEngine) {
+            	((StructuredPDFStreamEngine) context).endXObject();
+            }
         }
     }
 

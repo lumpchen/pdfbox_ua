@@ -353,7 +353,7 @@ public final class PDResources implements COSObjectable
     /**
      * Returns the resource with the given name and kind as an indirect object, or null.
      */
-    private COSObject getIndirect(COSName kind, COSName name)
+    public COSObject getIndirect(COSName kind, COSName name)
     {
         COSDictionary dict = (COSDictionary)resources.getDictionaryObject(kind);
         if (dict == null)

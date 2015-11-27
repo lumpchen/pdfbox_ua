@@ -143,4 +143,8 @@ public class PDArtifactMarkedContent extends PDMarkedContent
         return false;
     }
 
+    @Override
+    public boolean isArtifact() {
+    	return true;
+    }
 }

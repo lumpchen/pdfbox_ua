@@ -16,11 +16,14 @@
  */
 package org.apache.pdfbox.pdmodel.documentinterchange.markedcontent;
 
+import java.awt.Shape;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.text.TextPosition;
@@ -54,7 +57,11 @@ public class PDMarkedContent
     private final COSDictionary properties;
     private final List<Object> contents;
 
-
+    private Area area;
+    private List<Shape> outline;
+    private StringBuilder contentString;
+    private String xObjectRefTag = null;
+    
     /**
      * Creates a new marked content object.
      * 
@@ -189,6 +196,17 @@ public class PDMarkedContent
         this.getContents().add(xobject);
     }
 
+    public void setXObjectRefTag(COSObject xobj) {
+    	this.xObjectRefTag = PDMarkedContent.createXObjectRefTag(xobj);
+    }
+    
+    public String getXObjectRefTag() {
+    	return this.xObjectRefTag;
+    }
+
+    public static final String createXObjectRefTag(COSObject obj) {
+    	return obj.getObjectNumber() + "_" + obj.getGenerationNumber();
+    }
 
     @Override
     public String toString()
@@ -196,7 +214,65 @@ public class PDMarkedContent
         StringBuilder sb = new StringBuilder("tag=").append(this.tag)
             .append(", properties=").append(this.properties);
         sb.append(", contents=").append(this.contents);
+        
+        if (this.getAlternateDescription() != null) {
+        	sb.append(", alt=" + this.getAlternateDescription());
+        }
+        
+       	sb.append(", content_string=" + this.getContentString());
         return sb.toString();
     }
 
+    public boolean isArtifact() {
+    	return false;
+    }
+
+    public void appendContentString(String contentString) {
+    	if (this.contentString == null) {
+    		this.contentString = new StringBuilder();
+    	}
+    	this.contentString.append(contentString);
+    }
+    
+    public String getContentString() {
+    	if (this.contentString != null) {
+    		return this.contentString.toString();
+    	} else if (this.contents != null && !this.contents.isEmpty()) {
+    		this.contentString = new StringBuilder();
+    		for (Object obj : this.contents) {
+    			if (obj instanceof PDMarkedContent) {
+    				this.contentString.append(((PDMarkedContent) obj).getContentString());    				
+    			}
+    		}
+    		return this.contentString.toString();
+    	}
+    	return "";
+    }
+    
+    public void addOutlineShape(Shape shape) {
+    	if (this.outline == null) {
+    		this.outline = new ArrayList<Shape>();
+    	}
+    	this.outline.add(shape);
+    }
+    
+    public Area getOutlineArea() {
+    	if (this.area != null) {
+    		return this.area;
+    	}
+    	this.area = new Area();
+    	if (this.outline != null) {
+    		for (Shape s : this.outline) {
+        		this.area.add(new Area(s));
+        	}    		
+    	} else if (this.contents != null && !this.contents.isEmpty()) {
+    		this.contentString = new StringBuilder();
+    		for (Object obj : this.contents) {
+    			if (obj instanceof PDMarkedContent) {
+    				this.area.add(((PDMarkedContent) obj).getOutlineArea());    				
+    			}
+    		}
+    	}
+    	return this.area;
+    }
 }

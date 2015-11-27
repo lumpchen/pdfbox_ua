@@ -16,8 +16,10 @@
  */
 package org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure;
 
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.COSObjectable;
 
@@ -105,7 +107,14 @@ public class PDMarkedContentReference implements COSObjectable
         this.getCOSObject().setInt(COSName.MCID, mcid);
     }
 
-
+    public COSObject getStm() {
+    	COSBase base = this.getCOSObject().getItem("Stm");
+    	if (base != null) {
+    		return (COSObject) base;
+    	}
+    	return null;
+    }
+    
     @Override
     public String toString()
     {

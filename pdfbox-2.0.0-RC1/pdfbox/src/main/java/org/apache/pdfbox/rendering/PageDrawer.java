@@ -36,6 +36,7 @@ import java.awt.image.Raster;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
@@ -334,12 +335,9 @@ public class PageDrawer extends PDFGraphicsStreamEngine
      * @param at the transformation
      * @throws IOException if something went wrong
      */
-    private void drawGlyph2D(Glyph2D glyph2D, PDFont font, int code, Vector displacement,
+    protected void drawGlyph2D(Glyph2D glyph2D, PDFont font, int code, Vector displacement,
                              AffineTransform at) throws IOException
     {
-        PDGraphicsState state = getGraphicsState();
-        RenderingMode renderingMode = state.getTextState().getRenderingMode();
-
         GeneralPath path = glyph2D.getPathForCharacterCode(code);
         if (path != null)
         {
@@ -357,28 +355,33 @@ public class PageDrawer extends PDFGraphicsStreamEngine
 
             // render glyph
             Shape glyph = at.createTransformedShape(path);
+            this.drawGlyph(glyph);
+        }
+    }
+    
+    protected void drawGlyph(Shape glyph) throws IOException {
+        PDGraphicsState state = getGraphicsState();
+        RenderingMode renderingMode = state.getTextState().getRenderingMode();
+        if (renderingMode.isFill())
+        {
+            graphics.setComposite(state.getNonStrokingJavaComposite());
+            graphics.setPaint(getNonStrokingPaint());
+            setClip();
+            graphics.fill(glyph);
+        }
 
-            if (renderingMode.isFill())
-            {
-                graphics.setComposite(state.getNonStrokingJavaComposite());
-                graphics.setPaint(getNonStrokingPaint());
-                setClip();
-                graphics.fill(glyph);
-            }
+        if (renderingMode.isStroke())
+        {
+            graphics.setComposite(state.getStrokingJavaComposite());
+            graphics.setPaint(getStrokingPaint());
+            graphics.setStroke(getStroke());
+            setClip();
+            graphics.draw(glyph);
+        }
 
-            if (renderingMode.isStroke())
-            {
-                graphics.setComposite(state.getStrokingJavaComposite());
-                graphics.setPaint(getStrokingPaint());
-                graphics.setStroke(getStroke());
-                setClip();
-                graphics.draw(glyph);
-            }
-
-            if (renderingMode.isClip())
-            {
-                textClippingArea.add(new Area(glyph));
-            }
+        if (renderingMode.isClip())
+        {
+            textClippingArea.add(new Area(glyph));
         }
     }
 
@@ -779,7 +782,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         }
     }
 
-    private void drawBufferedImage(BufferedImage image, AffineTransform at) throws IOException
+    protected void drawBufferedImage(BufferedImage image, AffineTransform at) throws IOException
     {
         graphics.setComposite(getGraphicsState().getNonStrokingJavaComposite());
         setClip();

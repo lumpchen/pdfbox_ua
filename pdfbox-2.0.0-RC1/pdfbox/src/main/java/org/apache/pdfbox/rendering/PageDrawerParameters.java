@@ -30,7 +30,8 @@ public final class PageDrawerParameters
 {
     private final PDFRenderer renderer;
     private final PDPage page;
-
+    private final boolean isTagged;
+    
     /**
      * Package-private constructor.
      */
@@ -38,8 +39,16 @@ public final class PageDrawerParameters
     {
         this.renderer = renderer;
         this.page = page;
+        this.isTagged = false;
     }
 
+    PageDrawerParameters(PDFRenderer renderer, PDPage page, boolean isTagged)
+    {
+        this.renderer = renderer;
+        this.page = page;
+        this.isTagged = isTagged;
+    }
+    
     /**
      * Returns the page.
      */
@@ -54,5 +63,9 @@ public final class PageDrawerParameters
     PDFRenderer getRenderer()
     {
         return renderer;
+    }
+    
+    public boolean isTagged() {
+    	return this.isTagged;
     }
 }

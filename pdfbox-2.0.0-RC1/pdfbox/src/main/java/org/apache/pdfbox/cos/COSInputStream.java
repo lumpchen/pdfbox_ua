@@ -48,7 +48,7 @@ public final class COSInputStream extends FilterInputStream
      * @return Decoded stream.
      * @throws IOException If the stream could not be read.
      */
-    static COSInputStream create(List<Filter> filters, COSDictionary parameters, InputStream in,
+    synchronized static COSInputStream create(List<Filter> filters, COSDictionary parameters, InputStream in,
                                  ScratchFile scratchFile) throws IOException
     {
         List<DecodeResult> results = new ArrayList<DecodeResult>();

@@ -19,7 +19,12 @@ package org.apache.pdfbox.rendering;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -35,6 +40,49 @@ public class PDFRenderer
     protected final PDDocument document;
     // TODO keep rendering state such as caches here
 
+    private Map<Key, BufferedImage> cache = new HashMap<Key, BufferedImage>(); 
+    
+    class Key {
+    	private int pageIndex; 
+    	private int scale;
+    	public Key(int pageIndex, float scale) {
+    		this.pageIndex = pageIndex;
+    		this.scale = (int) (scale * 100);
+    	}
+    	
+    	@Override
+    	public int hashCode() {
+    		return this.pageIndex * 1000 + this.scale;
+    	}
+    	
+    	@Override
+    	public boolean equals(Object obj) {
+    		if (this == obj) {
+    			return true;
+    		}
+    		if (obj instanceof Key) {
+    			return ((Key) obj).pageIndex == this.pageIndex && ((Key) obj).scale == this.scale; 
+    		}
+    		return false;
+    	}
+    }
+    
+    private BufferedImage getImage(int pageIndex, float scale) {
+    	Key key = new Key(pageIndex, scale);
+    	if (this.cache.containsKey(key)) {
+    		return this.cache.get(key);
+    	}
+    	return null;
+    }
+    
+    private void cacheImage(int pageIndex, float scale, BufferedImage image) {
+    	Key key = new Key(pageIndex, scale);
+    	if (this.cache.containsKey(key)) {
+    		return;
+    	}
+    	this.cache.put(key, image);
+    }
+    
     /**
      * Creates a new PDFRenderer.
      * @param document the document to render
@@ -65,7 +113,20 @@ public class PDFRenderer
      */
     public BufferedImage renderImage(int pageIndex, float scale) throws IOException
     {
-        return renderImage(pageIndex, scale, ImageType.RGB);
+    	BufferedImage image = this.getImage(pageIndex, scale);
+    	if (image == null) {
+    		image = renderImage(pageIndex, scale, ImageType.RGB);
+    		this.cacheImage(pageIndex, scale, image);
+    	}
+   		ColorModel cm = image.getColorModel();
+   		boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+   		WritableRaster raster = image.copyData(null);
+   		return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+    }
+    
+    public BufferedImage renderImage(PDPage page, float scale) throws IOException
+    {
+        return renderImage(page, scale, ImageType.RGB);
     }
 
     /**
@@ -106,7 +167,12 @@ public class PDFRenderer
             throws IOException
     {
         PDPage page = document.getPage(pageIndex);
+        return this.renderImage(page, scale, imageType);
+    }
 
+    public BufferedImage renderImage(PDPage page, float scale, ImageType imageType)
+            throws IOException
+    {
         PDRectangle cropbBox = page.getCropBox();
         float widthPt = cropbBox.getWidth();
         float heightPt = cropbBox.getHeight();
@@ -141,7 +207,7 @@ public class PDFRenderer
 
         return image;
     }
-
+    
     /**
      * Renders a given page to an AWT Graphics2D instance.
      * @param pageIndex the zero-based index of the page to be converted

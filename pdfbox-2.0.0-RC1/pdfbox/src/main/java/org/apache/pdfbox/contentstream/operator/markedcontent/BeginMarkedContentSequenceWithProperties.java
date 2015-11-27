@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.rendering.StructuredPDFStreamEngine;
 import org.apache.pdfbox.text.PDFMarkedContentExtractor;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
@@ -52,6 +53,10 @@ public class BeginMarkedContentSequenceWithProperties extends OperatorProcessor
         if (this.context instanceof PDFMarkedContentExtractor)
         {
             ((PDFMarkedContentExtractor) this.context).beginMarkedContentSequence(tag, properties);
+        }
+        
+        if (this.context instanceof StructuredPDFStreamEngine) {
+        	((StructuredPDFStreamEngine) context).beginMarkedContentSequence(tag, properties);
         }
     }
 

@@ -1349,4 +1349,9 @@ public class PDDocument implements Closeable
     {
         this.resourceCache = resourceCache;
     }
+    
+    public boolean isTaggedPDF() 
+    {
+    	return this.getDocumentCatalog().getStructureTreeRoot() != null;
+    }
 }

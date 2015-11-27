@@ -56,11 +56,13 @@
         <artifactId>levigo-jbig2-imageio</artifactId>
         <scope>test</scope>
     </dependency>
+	<!--
     <dependency>
         <groupId>net.java.dev.jai-imageio</groupId>
         <artifactId>jai-imageio-core-standalone</artifactId>
         <scope>test</scope>
     </dependency>
+	-->
   </dependencies>
 
   <build>

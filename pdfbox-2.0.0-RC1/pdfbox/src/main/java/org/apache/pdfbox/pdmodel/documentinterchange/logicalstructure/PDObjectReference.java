@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.common.COSObjectable;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
@@ -88,11 +89,15 @@ public class PDObjectReference implements COSObjectable
         }
         try
         {
-            PDXObject xobject = PDXObject.createXObject(obj, null); // <-- TODO: valid?
-            if (xobject != null)
-            {
-                return xobject;
-            }
+        	if (obj instanceof COSStream) 
+        	{
+        		PDXObject xobject = PDXObject.createXObject(obj, null); // <-- TODO: valid?
+                if (xobject != null)
+                {
+                    return xobject;
+                }	
+        	}
+            
             COSDictionary objDictionary  = (COSDictionary)obj;
             PDAnnotation annotation = PDAnnotation.createAnnotation(obj);
             /*

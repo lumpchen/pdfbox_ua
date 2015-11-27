@@ -19,10 +19,11 @@ package org.apache.pdfbox.contentstream.operator.markedcontent;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.text.PDFMarkedContentExtractor;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.rendering.StructuredPDFStreamEngine;
+import org.apache.pdfbox.text.PDFMarkedContentExtractor;
 
 /**
  * EMC : Ends a marked-content sequence begun by BMC or BDC.
@@ -37,6 +38,10 @@ public class EndMarkedContentSequence extends OperatorProcessor
         if (this.context instanceof PDFMarkedContentExtractor)
         {
             ((PDFMarkedContentExtractor) this.context).endMarkedContentSequence();
+        }
+        
+        if (this.context instanceof StructuredPDFStreamEngine) {
+        	((StructuredPDFStreamEngine) context).endMarkedContentSequence();
         }
     }
 

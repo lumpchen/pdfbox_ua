@@ -78,6 +78,25 @@ public class PDAnnotationWidget extends PDAnnotation
         return this.getCOSObject().getNameAsString(COSName.H, "I");
     }
 
+    public String getTU()
+    {
+        String tu = this.getCOSObject().getNameAsString(COSName.TU);
+        if (tu == null) {
+        	if (this.getParent() != null) 
+        	{
+        		PDAnnotationWidget parent = new PDAnnotationWidget((COSDictionary) this.getParent());
+        		tu = parent.getTU();
+        	}
+        }
+        return tu;
+    }
+    
+    public COSBase getParent()
+    {
+    	return this.getCOSObject().getDictionaryObject(COSName.PARENT);
+    }
+
+    
     /**
      * Sets the highlighting mode.
      * <dl>
