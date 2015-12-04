@@ -109,6 +109,27 @@ public class StructureNode {
 		return ret;
 	}
 	
+	public String getReadingText() throws IOException {
+		int count = this.getChildCount();
+		StringBuilder buf = new StringBuilder();
+		if (this.getAlt() != null) {
+			buf.append(this.getAlt());
+			buf.append(" ");
+			return buf.toString();
+		}
+		
+		for (int i = 0; i < count; i++) {
+			Object obj = this.getChildNode(i);
+			if (obj instanceof StructureNode) {
+				buf.append(((StructureNode) obj).getReadingText());
+			} else if (obj instanceof MarkedContentNode) {
+				buf.append(((MarkedContentNode) obj).getContentString());
+				buf.append(" ");
+			}
+		}
+		return buf.toString();
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder buf = new StringBuilder();

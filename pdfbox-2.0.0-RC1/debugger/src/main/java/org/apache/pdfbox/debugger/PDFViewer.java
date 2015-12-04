@@ -61,6 +61,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.pdfbox.debugger.pagepane.PageViewPane;
+import org.apache.pdfbox.debugger.pagepane.ReadingEngine;
+import org.apache.pdfbox.debugger.pagepane.ReadingWorker;
 import org.apache.pdfbox.debugger.pagepane.TagsLoaderWorker;
 import org.apache.pdfbox.debugger.ui.ErrorDialog;
 import org.apache.pdfbox.debugger.ui.ExtensionFileFilter;
@@ -360,7 +362,110 @@ public class PDFViewer extends JFrame {
 		}
 		viewMenu.add(menu);
 
+		menu = new JMenu("Read Out Loud");
+		bg = new ButtonGroup();
+		JRadioButtonMenuItem startItem = new JRadioButtonMenuItem("Read This Page");
+		startItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startReadPage();
+			}
+		});
+		bg.add(startItem);
+		menu.add(startItem);
+		
+		startItem = new JRadioButtonMenuItem("Read Highlight Content");
+		startItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				startReadStructure();
+			}
+		});
+		bg.add(startItem);
+		menu.add(startItem);
+		
+		JRadioButtonMenuItem stopItem = new JRadioButtonMenuItem("Stop");
+		stopItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				stopReading();
+			}
+		});
+		bg.add(stopItem);
+		menu.add(stopItem);
+		viewMenu.add(menu);
+		
 		return viewMenu;
+	}
+	
+	private ReadingEngine readingEngine = new ReadingEngine();
+	private ReadingWorker readingWorker;
+	private void startReadPage() {
+		try {
+			String text = this.getPageText();
+			if (text != null && !text.isEmpty()) {
+				this.readingWorker = new ReadingWorker(this.readingEngine, text);
+				this.readingWorker.execute();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void startReadStructure() {
+		TreePath path = this.tagsTree.getSelectionPath();
+		if (path != null) {
+			try {
+				StringBuilder textBuf = new StringBuilder();
+				Object selectedNode = path.getLastPathComponent();
+
+				if (selectedNode instanceof MarkedContentNode) {
+					MarkedContentNode mcNode = (MarkedContentNode) selectedNode;
+					textBuf.append(mcNode.getContentString());
+				} else if (selectedNode instanceof StructureNode) {
+					StructureNode selStructure = (StructureNode) selectedNode;
+					textBuf.append(selStructure.getReadingText());
+				}
+				String text = textBuf.toString();
+				if (text != null && !text.isEmpty()) {
+					this.readingWorker = new ReadingWorker(this.readingEngine, text);
+					this.readingWorker.execute();
+				}
+			} catch (Exception e) {
+				return;
+			}
+		}
+	}
+	
+	private String getPageText() throws IOException {
+		if (this.pageViewPane == null || this.pageViewPane.getPage() == null) {
+			return null;
+		}
+		
+		PDPage page = this.pageViewPane.getPage();
+		PDFTagsTreeModel treeModel = (PDFTagsTreeModel) this.tagsTree.getModel();
+		StringBuilder text = new StringBuilder();
+		List<MarkedContentNode> mcList = treeModel.getPageMarkedContents(page);
+		for (MarkedContentNode node : mcList) {
+			String content = node.getContentString();
+			if (content != null) {
+				text.append(content);
+			}
+		}
+		return text.toString();
+	}
+	
+	private void stopReading() {
+		try {
+			if (this.readingWorker != null) {
+				this.readingWorker.stop();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void addZoomActionListener(JRadioButtonMenuItem zoomItem) {

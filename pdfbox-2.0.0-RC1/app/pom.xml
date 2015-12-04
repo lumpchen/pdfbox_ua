@@ -93,6 +93,7 @@
             <Bundle-DocURL>${project.url}</Bundle-DocURL>
             <Import-Package>!junit.framework,!junit.textui,javax.*;resolution:=optional,org.apache.avalon.framework.logger;resolution:=optional,org.apache.log;resolution:=optional,org.apache.log4j;resolution:=optional,*</Import-Package>
             <Main-Class>org.apache.pdfbox.tools.PDFBox</Main-Class>
+            <Class-Path>lib/freetts.jar lib/en_us.jar lib/cmutimelex.jar lib/cmu_time_awb.jar lib/cmulex.jar lib/cmu_us_kal.jar lib/cmudict04.jar lib/freetts-jsapi10.jar</Class-Path>
           </instructions>
         </configuration>
       </plugin>

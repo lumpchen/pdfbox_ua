@@ -66,6 +66,10 @@ public class PageViewPane implements ActionListener, AncestorListener {
         this.initUI();
     }
     
+    public PDPage getPage() {
+    	return this.pdPage;
+    }
+    
     public void setPage(PDPage page) {
     	this.setPage(page, null);
     }

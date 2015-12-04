@@ -63,6 +63,59 @@
         <scope>test</scope>
     </dependency>
 	-->
+	
+					<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-jsapi</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	<!-- 
+	<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-cmu-time-awb</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-cmu-us-kal</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-cmudict04</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-cmulex</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	
+		<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-cmutimelex</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	
+			<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-en-us</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	
+				<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts-jsapi10</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	
+<dependency>
+		<groupId>com.sun.speech.freetts</groupId>
+		<artifactId>freetts</artifactId>
+		<version>1.2.2</version>
+	</dependency>
+	 -->
+	 
   </dependencies>
 
   <build>
