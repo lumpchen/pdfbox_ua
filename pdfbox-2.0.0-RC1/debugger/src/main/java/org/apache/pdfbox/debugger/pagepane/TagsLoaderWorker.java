@@ -7,16 +7,16 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.apache.pdfbox.debugger.ui.Tree;
+import org.apache.pdfbox.debugger.ui.TagsTree;
 import org.apache.pdfbox.debugger.ui.tags.PDFTagsTreeModel;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 public class TagsLoaderWorker extends SwingWorker<PDFTagsTreeModel, Integer> {
 
 	private PDDocument pdf;
-	private Tree tagsTree;
+	private TagsTree tagsTree;
 
-	public TagsLoaderWorker(PDDocument pdf, Tree tagsTree) {
+	public TagsLoaderWorker(PDDocument pdf, TagsTree tagsTree) {
 		this.pdf = pdf;
 		this.tagsTree = tagsTree;
 	}

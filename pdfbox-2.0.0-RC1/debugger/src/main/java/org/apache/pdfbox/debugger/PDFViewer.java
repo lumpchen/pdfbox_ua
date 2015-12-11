@@ -33,7 +33,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -61,7 +63,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.pdfbox.debugger.pagepane.PageViewPane;
-import org.apache.pdfbox.debugger.pagepane.ReadingEngine;
 import org.apache.pdfbox.debugger.pagepane.ReadingWorker;
 import org.apache.pdfbox.debugger.pagepane.TagsLoaderWorker;
 import org.apache.pdfbox.debugger.ui.ErrorDialog;
@@ -69,12 +70,14 @@ import org.apache.pdfbox.debugger.ui.ExtensionFileFilter;
 import org.apache.pdfbox.debugger.ui.FileOpenSaveDialog;
 import org.apache.pdfbox.debugger.ui.OSXAdapter;
 import org.apache.pdfbox.debugger.ui.RecentFiles;
+import org.apache.pdfbox.debugger.ui.TagsTree;
 import org.apache.pdfbox.debugger.ui.Tree;
 import org.apache.pdfbox.debugger.ui.tags.MarkedContentNode;
 import org.apache.pdfbox.debugger.ui.tags.PDFPageTreeModel;
 import org.apache.pdfbox.debugger.ui.tags.PDFTagsTreeCellRender;
 import org.apache.pdfbox.debugger.ui.tags.PDFTagsTreeModel;
 import org.apache.pdfbox.debugger.ui.tags.PageIndexNode;
+import org.apache.pdfbox.debugger.ui.tags.ReadingText;
 import org.apache.pdfbox.debugger.ui.tags.StructureNode;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -112,7 +115,7 @@ public class PDFViewer extends JFrame {
 	private javax.swing.JSplitPane jSplitPaneMain;
 	private javax.swing.JTextPane jTextPane1;
 	private Tree pageTree;
-	private Tree tagsTree;
+	private TagsTree tagsTree;
 
 	private final JPanel documentPanel = new JPanel();
 
@@ -132,6 +135,8 @@ public class PDFViewer extends JFrame {
 	 */
 	public PDFViewer(boolean viewPages) {
 		initComponents();
+		
+		this.readingWorker.start();
 	}
 
 	/**
@@ -185,7 +190,7 @@ public class PDFViewer extends JFrame {
 				}
 			}
 		});
-		this.tagsTree = new Tree(this);
+		this.tagsTree = new TagsTree(this);
 		this.tagsTree.setCellRenderer(new PDFTagsTreeCellRender());
 		this.tagsTree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
@@ -401,67 +406,76 @@ public class PDFViewer extends JFrame {
 		return viewMenu;
 	}
 	
-	private ReadingEngine readingEngine = new ReadingEngine();
-	private ReadingWorker readingWorker;
+	private ReadingWorker readingWorker = new ReadingWorker();
 	private void startReadPage() {
 		try {
-			String text = this.getPageText();
-			if (text != null && !text.isEmpty()) {
-				this.readingWorker = new ReadingWorker(this.readingEngine, text);
-				this.readingWorker.execute();
-			}
+			List<ReadingText> textList = this.getPageReadingText();
+			this.readText(textList);	
+//			if (text != null && !text.isEmpty()) {
+//				this.readingWorker.add(text, Locale.US, "dfki-pavoque-styles");
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	private void startReadStructure() {
-		TreePath path = this.tagsTree.getSelectionPath();
-		if (path != null) {
-			try {
-				StringBuilder textBuf = new StringBuilder();
-				Object selectedNode = path.getLastPathComponent();
-
-				if (selectedNode instanceof MarkedContentNode) {
-					MarkedContentNode mcNode = (MarkedContentNode) selectedNode;
-					textBuf.append(mcNode.getContentString());
-				} else if (selectedNode instanceof StructureNode) {
-					StructureNode selStructure = (StructureNode) selectedNode;
-					textBuf.append(selStructure.getReadingText());
-				}
-				String text = textBuf.toString();
-				if (text != null && !text.isEmpty()) {
-					this.readingWorker = new ReadingWorker(this.readingEngine, text);
-					this.readingWorker.execute();
-				}
-			} catch (Exception e) {
-				return;
-			}
+		List<ReadingText> textList = this.getHighlightText();
+		this.readText(textList);
+	}
+	
+	private void readText(List<ReadingText> textList) {
+		this.readingWorker.stopReading();
+		
+		textList = ReadingText.mergeTextByLang(textList);
+		if (textList == null) {
+			return;
+		}
+		for (ReadingText text : textList) {
+			this.readingWorker.add(text);
 		}
 	}
 	
-	private String getPageText() throws IOException {
+	private List<ReadingText> getHighlightText() {
+		TreePath path = this.tagsTree.getSelectionPath();
+		if (path != null) {
+			try {
+				Object selectedNode = path.getLastPathComponent();
+				List<ReadingText> textList = new ArrayList<ReadingText>();
+				if (selectedNode instanceof MarkedContentNode) {
+					MarkedContentNode mcNode = (MarkedContentNode) selectedNode;
+					textList.add(new ReadingText(mcNode.getContentString(), mcNode.getLang()));
+				} else if (selectedNode instanceof StructureNode) {
+					StructureNode selStructure = (StructureNode) selectedNode;
+					return selStructure.getReadingText();
+				}
+				return textList;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
+	private List<ReadingText> getPageReadingText() {
 		if (this.pageViewPane == null || this.pageViewPane.getPage() == null) {
 			return null;
 		}
 		
-		PDPage page = this.pageViewPane.getPage();
-		PDFTagsTreeModel treeModel = (PDFTagsTreeModel) this.tagsTree.getModel();
-		StringBuilder text = new StringBuilder();
-		List<MarkedContentNode> mcList = treeModel.getPageMarkedContents(page);
-		for (MarkedContentNode node : mcList) {
-			String content = node.getContentString();
-			if (content != null) {
-				text.append(content);
-			}
+		try {
+			PDPage page = this.pageViewPane.getPage();
+			PDFTagsTreeModel treeModel = (PDFTagsTreeModel) this.tagsTree.getModel();
+			return treeModel.getReadingText(page);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return text.toString();
+		return null;
 	}
 	
 	private void stopReading() {
 		try {
 			if (this.readingWorker != null) {
-				this.readingWorker.stop();
+				this.readingWorker.stopReading();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

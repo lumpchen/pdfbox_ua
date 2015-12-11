@@ -14,10 +14,14 @@ public class StructureNode {
 	private PDStructureElement structure;
 	private PDFTagsTreeModel model;
 	private List<Object> children;
+	private StructureNode parent;
+	private String lang;
 
-	public StructureNode(PDStructureElement structure, PDFTagsTreeModel model) throws IOException {
+	public StructureNode(PDStructureElement structure, StructureNode parent, PDFTagsTreeModel model) throws IOException {
 		this.structure = structure;
 		this.model = model;
+		this.parent = parent;
+		this.lang = this.structure.getLanguage();
 		this.init();
 	}
 	
@@ -35,7 +39,7 @@ public class StructureNode {
 	
 	private Object createEntry(Object item) throws IOException {
 		if (item instanceof PDStructureElement) {
-			return new StructureNode((PDStructureElement) item, this.model);
+			return new StructureNode((PDStructureElement) item, this, this.model);
 		} else if (item instanceof Integer) { // MCID
 			MarkedContentNode mcEntry = new MarkedContentNode((Integer) item, this, this.model);
 			return mcEntry;
@@ -62,6 +66,10 @@ public class StructureNode {
 	
 	public PDPage getPage() {
 		return this.structure.getPage();
+	}
+	
+	public StructureNode getParent() {
+		return this.parent;
 	}
 	
 	public int getChildCount() {
@@ -109,24 +117,62 @@ public class StructureNode {
 		return ret;
 	}
 	
-	public String getReadingText() throws IOException {
+	public List<ReadingText> getReadingText() throws IOException {
+		List<ReadingText> textList = new ArrayList<ReadingText>();
 		int count = this.getChildCount();
 		StringBuilder buf = new StringBuilder();
 		if (this.getAlt() != null) {
 			buf.append(this.getAlt());
 			buf.append(" ");
-			return buf.toString();
+			textList.add(new ReadingText(buf.toString(), this.getInheritLang()));
+			return textList;
 		}
 		
 		for (int i = 0; i < count; i++) {
 			Object obj = this.getChildNode(i);
 			if (obj instanceof StructureNode) {
-				buf.append(((StructureNode) obj).getReadingText());
+				textList.addAll(((StructureNode) obj).getReadingText());
 			} else if (obj instanceof MarkedContentNode) {
-				buf.append(((MarkedContentNode) obj).getContentString());
-				buf.append(" ");
+				textList.add(new ReadingText(((MarkedContentNode) obj).getContentString(), 
+						((MarkedContentNode) obj).getLang()));
 			}
 		}
+		return textList;
+	}
+	
+	public String getLang() {
+		return this.lang;
+	}
+	
+	public String getInheritLang() {
+		if (this.lang != null) {
+			return this.lang;
+		}
+		StructureNode parent = this.getParent();
+		while (parent != null) {
+			if (parent.getLang() != null) {
+				return parent.getLang();
+			}
+			parent = parent.getParent();
+		}
+		return this.model.getLang();
+	}
+	
+	public String getNodeString() {
+		StringBuilder buf = new StringBuilder();
+		String type = this.structure.getType();
+		if (type != null && type.equalsIgnoreCase("StructElem")) {
+//			buf.append(this.structure.getStandardStructureType());
+    	} 
+		
+		if (this.structure.getStandardStructureType() != null) {
+			buf.append("<" + this.structure.getStandardStructureType() + ">");
+		}
+		
+		if (this.structure.getTitle() != null && !this.structure.getTitle().isEmpty()) {
+			buf.append(" : " + this.structure.getTitle());
+		}
+		
 		return buf.toString();
 	}
 	
@@ -139,11 +185,18 @@ public class StructureNode {
     	} 
 		
 		if (this.structure.getStandardStructureType() != null) {
-			buf.append(this.structure.getStandardStructureType());
+			buf.append("Type: " + this.structure.getStandardStructureType());
+			buf.append("\n");
 		}
 		
 		if (this.structure.getTitle() != null) {
-			buf.append(" " + this.structure.getTitle());
+			buf.append("Title: " + this.structure.getTitle());
+			buf.append("\n");
+		}
+		
+		if (this.getLang() != null) {
+			buf.append("Language: " + this.getLang());
+			buf.append("\n");
 		}
 		
 		return buf.toString();

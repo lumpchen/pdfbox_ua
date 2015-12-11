@@ -169,6 +169,17 @@ public class MarkedContentNode {
 		return this.annotSubType;
 	}
 	
+	public String getLang() {
+		StructureNode parent = this.getParent();
+		while (parent != null) {
+			if (parent.getLang() != null) {
+				return parent.getLang();
+			}
+			parent = parent.getParent();
+		}
+		return this.model.getLang();
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder buf = new StringBuilder();

@@ -19,9 +19,11 @@ public class PDFTagsTreeModel implements TreeModel {
 	private PDStructureTreeRoot structureRoot;
 	private DocumentStructureExtractor pageStructureExtractor;
 	private List<StructureNode> documentNodes;
+	private String lang;
 	
 	public PDFTagsTreeModel(PDDocument document) {
 		this.structureRoot = document.getDocumentCatalog().getStructureTreeRoot();
+		this.lang = document.getDocumentCatalog().getLanguage();
 		this.pageStructureExtractor = new DocumentStructureExtractor(document);
 		this.loadTags();
 	}
@@ -33,7 +35,7 @@ public class PDFTagsTreeModel implements TreeModel {
 			for (Object kid : kids) {
 				if (kid instanceof PDStructureElement) {
 					try {
-						this.documentNodes.add(new StructureNode((PDStructureElement) kid, this));
+						this.documentNodes.add(new StructureNode((PDStructureElement) kid, null, this));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -53,6 +55,21 @@ public class PDFTagsTreeModel implements TreeModel {
 			}
 		}
 		return ret;
+	}
+	
+	public List<ReadingText> getReadingText(PDPage page) throws IOException {
+		List<ReadingText> textList = new ArrayList<ReadingText>();
+		
+		List<MarkedContentNode> mcNodes = this.getPageMarkedContents(page);
+		for (MarkedContentNode mcNode : mcNodes) {
+			textList.add(new ReadingText(mcNode.getContentString(), mcNode.getLang()));
+		}
+		
+		return textList;
+	}
+	
+	public String getLang() {
+		return this.lang;
 	}
 	
 	@Override

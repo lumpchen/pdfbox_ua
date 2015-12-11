@@ -46,7 +46,7 @@ public class PDFTagsTreeCellRender extends DefaultTreeCellRenderer {
         if (nodeValue instanceof PDStructureTreeRoot) {
         	result = ROOT_TAG_NAME;
         } else if (nodeValue instanceof StructureNode) {
-        	result = ((StructureNode) nodeValue).toString();
+        	result = ((StructureNode) nodeValue).getNodeString();
         } else {
         	result = nodeValue.toString();
         }
