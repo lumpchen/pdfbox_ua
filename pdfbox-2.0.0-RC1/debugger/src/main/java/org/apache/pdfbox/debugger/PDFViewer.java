@@ -35,11 +35,11 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -367,6 +367,8 @@ public class PDFViewer extends JFrame {
 		}
 		viewMenu.add(menu);
 
+		viewMenu.addSeparator();
+		
 		menu = new JMenu("Read Out Loud");
 		bg = new ButtonGroup();
 		JRadioButtonMenuItem startItem = new JRadioButtonMenuItem("Read This Page");
@@ -402,6 +404,19 @@ public class PDFViewer extends JFrame {
 		bg.add(stopItem);
 		menu.add(stopItem);
 		viewMenu.add(menu);
+		
+		viewMenu.addSeparator();
+		
+		JCheckBoxMenuItem aftifactItem = new JCheckBoxMenuItem("Highlight Artifact");
+		aftifactItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				boolean flag = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+				highlightArtifact(flag);	
+			}
+		});
+		viewMenu.add(aftifactItem);
 		
 		return viewMenu;
 	}
@@ -509,6 +524,12 @@ public class PDFViewer extends JFrame {
 			}
 		});
 	}
+	
+	private boolean highlightArtifact = false;
+	private void highlightArtifact(boolean selected) {
+		this.highlightArtifact = selected;
+	}
+	
 
 	/**
 	 * This method is called via reflection on Mac OS X.
@@ -602,12 +623,14 @@ public class PDFViewer extends JFrame {
 					}
 					PDFTagsTreeModel treeModel = (PDFTagsTreeModel) this.tagsTree.getModel();
 					this.pageViewPane.setPage(page, treeModel.getPageMarkedContents(page));
+					if (this.highlightArtifact) {
+						this.pageViewPane.setArtifactList(treeModel.getArtifacts(page));
+					} else {
+						this.pageViewPane.setArtifactList(null);
+					}
 					this.pageViewPane.zoom(this.zoom);
 					this.pageViewPane.rotation(this.rotation);
 					this.pageViewPane.addMarkedContent(page, (MarkedContentNode) selectedNode);
-					this.pageViewPane.executePage();
-					replaceRightComponent(new JScrollPane(this.pageViewPane.getPanel()));
-					return;
 				} else if (selectedNode instanceof StructureNode) {
 					StructureNode selStructure = (StructureNode) selectedNode;
 					PDPage page = selStructure.getPage();
@@ -625,20 +648,23 @@ public class PDFViewer extends JFrame {
 					MarkedContentNode[] children = entries.toArray(new MarkedContentNode[entries.size()]);
 					PDFTagsTreeModel treeModel = (PDFTagsTreeModel) this.tagsTree.getModel();
 					this.pageViewPane.setPage(page, treeModel.getPageMarkedContents(page));
+					if (this.highlightArtifact) {
+						this.pageViewPane.setArtifactList(treeModel.getArtifacts(page));
+					} else {
+						this.pageViewPane.setArtifactList(null);
+					}
 					this.pageViewPane.zoom(this.zoom);
 					this.pageViewPane.rotation(this.rotation);
 					this.pageViewPane.addMarkedContent(page, children);
-					this.pageViewPane.executePage();
-					replaceRightComponent(new JScrollPane(pageViewPane.getPanel()));
-					return;
 				} else if (selectedNode instanceof PDStructureTreeRoot) {
 					if (this.pageViewPane != null) {
-						replaceRightComponent(new JScrollPane(this.pageViewPane.getPanel()));
 						this.pageViewPane.clearMarkedContent();
-						this.pageViewPane.executePage();
-						replaceRightComponent(new JScrollPane(this.pageViewPane.getPanel()));
+					} else {
+						return;
 					}
 				}
+				this.pageViewPane.executePage();
+				replaceRightComponent(new JScrollPane(this.pageViewPane.getPanel()));
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);

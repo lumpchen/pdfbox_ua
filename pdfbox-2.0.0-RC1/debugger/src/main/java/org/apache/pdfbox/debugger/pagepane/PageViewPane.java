@@ -6,10 +6,13 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ import javax.swing.event.AncestorListener;
 
 import org.apache.pdfbox.debugger.ui.ImageUtil;
 import org.apache.pdfbox.debugger.ui.tags.MarkedContentNode;
+import org.apache.pdfbox.debugger.ui.tags.PDFTagsTreeModel.ArtifactNode;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -80,6 +84,11 @@ public class PageViewPane implements ActionListener, AncestorListener {
     
     public void rotation(int rotation) {
     	this.rotation = rotation;
+    }
+    
+    private List<ArtifactNode> artifactList;
+    public void setArtifactList(List<ArtifactNode> artifactList) {
+    	this.artifactList = artifactList;
     }
     
     private void initUI() {
@@ -169,6 +178,7 @@ public class PageViewPane implements ActionListener, AncestorListener {
     
     public void clearMarkedContent() {
     	this.selectedStructureList = null;
+    	this.artifactList = null;
     }
     
     /**
@@ -183,6 +193,8 @@ public class PageViewPane implements ActionListener, AncestorListener {
         private List<MarkedContentNode> selectedStructureList = null;
         private PDPage pdPage;
         private List<TooltipArea> tooltipArea;
+        
+        private final Color ARTIFACT_COLOR = Color.DARK_GRAY;
 
         private RenderWorker(float scale, int rotation, PDPage pdPage, int pageIndex) {
             this.scale = scale;
@@ -230,10 +242,29 @@ public class PageViewPane implements ActionListener, AncestorListener {
             		for (MarkedContentNode mc : this.selectedStructureList) {
             			Area outline = mc.getOutlineArea();
             			if (outline != null) {
-            				g2.draw(outline.getBounds2D());            				
+            				g2.draw(outline.getBounds2D());
             			}
             		}
             	}
+        		
+        		if (artifactList != null) {
+        			g2.setPaint(ARTIFACT_COLOR);
+        			for (ArtifactNode artifact : artifactList) {
+        				Rectangle2D rect = artifact.outline.getBounds2D();
+        				g2.draw(rect);
+        				int x1 = (int) rect.getX();
+        				int y1 = (int) rect.getY();
+        				int x2 = x1 + (int) rect.getWidth();
+        				int y2 = y1 + (int) rect.getHeight();
+        				g2.drawLine(x1, y1, x2, y2);
+        				
+        				x1 = (int) rect.getX();
+        				y2 = (int) rect.getY();
+        				y1 = y2 + (int) rect.getHeight();
+        				x2 = x1 + (int) rect.getWidth();
+        				g2.drawLine(x1, y1, x2, y2);
+        			}
+        		}
             	
                 label.setIcon(new ImageIcon(get()));
                 label.setText(null);
@@ -251,6 +282,8 @@ public class PageViewPane implements ActionListener, AncestorListener {
         }
         
         private void initUserSpaceGraphics(Graphics2D g) {
+        	g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        	
             PDRectangle cropBox = this.pdPage.getCropBox();
             int rotationAngle = this.pdPage.getRotation() + this.rotation;
             
@@ -276,7 +309,7 @@ public class PageViewPane implements ActionListener, AncestorListener {
             }
             
             g.translate(0, cropBox.getHeight());
-            g.scale(1, -1);
+            g.scale(1, -1); // Flip vertical
 
             // TODO use getStroke() to set the initial stroke
             g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));

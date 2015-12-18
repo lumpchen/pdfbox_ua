@@ -1,5 +1,6 @@
 package org.apache.pdfbox.debugger.ui.tags;
 
+import java.awt.geom.Area;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.rendering.DocumentStructureExtractor;
 
 public class PDFTagsTreeModel implements TreeModel {
@@ -55,6 +57,24 @@ public class PDFTagsTreeModel implements TreeModel {
 			}
 		}
 		return ret;
+	}
+	
+	public static class ArtifactNode {
+		public Area outline;
+	}
+	public List<ArtifactNode> getArtifacts(PDPage page) throws IOException {
+		List<PDMarkedContent> contents = this.pageStructureExtractor.extract(page);
+		List<ArtifactNode> artifactList = new ArrayList<ArtifactNode>();
+		for (PDMarkedContent content : contents) {
+			if (content.isArtifact()) {
+				Area area = content.getOutlineArea();
+				ArtifactNode artifact = new ArtifactNode();
+				artifact.outline = area;
+				artifactList.add(artifact);
+				continue;
+			}
+		}
+		return artifactList;
 	}
 	
 	public List<ReadingText> getReadingText(PDPage page) throws IOException {
