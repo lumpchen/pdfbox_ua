@@ -39,7 +39,7 @@ import org.apache.pdfbox.util.Matrix;
  *
  * @author John Hewson
  */
-public final class PDType3CharProc implements COSObjectable, PDContentStream
+public final class PDType3CharProc implements PDContentStream
 {
     private final PDType3Font font;
     private final COSStream charStream;

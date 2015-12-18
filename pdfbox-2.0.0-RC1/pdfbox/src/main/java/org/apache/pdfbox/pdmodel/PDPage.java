@@ -50,7 +50,7 @@ import org.apache.pdfbox.util.Matrix;
  * 
  * @author Ben Litchfield
  */
-public class PDPage implements COSObjectable, PDContentStream
+public class PDPage implements PDContentStream
 {
     /**
      * Log instance

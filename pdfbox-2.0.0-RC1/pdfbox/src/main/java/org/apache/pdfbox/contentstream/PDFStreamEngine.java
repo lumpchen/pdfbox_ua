@@ -439,7 +439,9 @@ public abstract class PDFStreamEngine
         PDRectangle bbox = contentStream.getBBox();
         clipToRect(bbox);
 
-        processStreamOperators(contentStream);
+        synchronized (contentStream.getCOSObject()) {
+        	processStreamOperators(contentStream);        	
+        }
 
         initialMatrix = parentMatrix;
         restoreGraphicsStack(savedStack);

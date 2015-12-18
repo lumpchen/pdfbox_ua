@@ -19,7 +19,9 @@ package org.apache.pdfbox.contentstream;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.COSObjectable;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.util.Matrix;
 
@@ -28,7 +30,7 @@ import org.apache.pdfbox.util.Matrix;
  *
  * @author John Hewson
  */
-public interface PDContentStream
+public interface PDContentStream extends COSObjectable
 {
     /**
      * Returns this stream's content, if any.
