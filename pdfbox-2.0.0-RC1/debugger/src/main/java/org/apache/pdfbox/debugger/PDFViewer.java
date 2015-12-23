@@ -271,8 +271,7 @@ public class PDFViewer extends JFrame {
 
 	private JMenu createFileMenu() {
 		JMenuItem openMenuItem = new JMenuItem("Open...");
-		openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
-				SHORCUT_KEY_MASK));
+		openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, SHORCUT_KEY_MASK));
 		openMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent evt) {
@@ -336,7 +335,10 @@ public class PDFViewer extends JFrame {
     private static final int[] ROTATION = {0, 90, 180, 270};
 	private int zoom = 100;
 	private int rotation = 0;
-
+	private ReadingWorker readingWorker = new ReadingWorker();
+	private boolean highlightArtifact = false;
+	private TagsLoaderWorker worker;
+	
 	private JMenu createViewMenu() {
 		JMenu viewMenu = new JMenu("View");
 
@@ -421,14 +423,10 @@ public class PDFViewer extends JFrame {
 		return viewMenu;
 	}
 	
-	private ReadingWorker readingWorker = new ReadingWorker();
 	private void startReadPage() {
 		try {
 			List<ReadingText> textList = this.getPageReadingText();
 			this.readText(textList);	
-//			if (text != null && !text.isEmpty()) {
-//				this.readingWorker.add(text, Locale.US, "dfki-pavoque-styles");
-//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -525,7 +523,6 @@ public class PDFViewer extends JFrame {
 		});
 	}
 	
-	private boolean highlightArtifact = false;
 	private void highlightArtifact(boolean selected) {
 		this.highlightArtifact = selected;
 	}
@@ -824,8 +821,6 @@ public class PDFViewer extends JFrame {
 		this.pageTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		this.pageTree.setSelectionPath(this.pageTree.getPathForRow(1));
 	}
-
-	private TagsLoaderWorker worker;
 
 	private void initTagsTree() {
 		PDStructureTreeRoot structureRoot = this.document.getDocumentCatalog().getStructureTreeRoot();

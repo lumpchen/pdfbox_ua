@@ -10,7 +10,6 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -194,7 +193,7 @@ public class PageViewPane implements ActionListener, AncestorListener {
         private PDPage pdPage;
         private List<TooltipArea> tooltipArea;
         
-        private final Color ARTIFACT_COLOR = Color.DARK_GRAY;
+        private final Color ARTIFACT_COLOR = Color.BLACK;
 
         private RenderWorker(float scale, int rotation, PDPage pdPage, int pageIndex) {
             this.scale = scale;
@@ -249,6 +248,8 @@ public class PageViewPane implements ActionListener, AncestorListener {
         		
         		if (artifactList != null) {
         			g2.setPaint(ARTIFACT_COLOR);
+        			g2.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 
+        					0, new float[]{3}, 0));
         			for (ArtifactNode artifact : artifactList) {
         				Rectangle2D rect = artifact.outline.getBounds2D();
         				g2.draw(rect);
